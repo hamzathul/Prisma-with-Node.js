@@ -8,6 +8,10 @@ export const createCategory = async (req, res) => {
       return res.status(422).json({ error: "Name is required" });
     }
 
+    if (await prisma.category.findUnique({ where: { name: req.body.name } })) {
+      return res.status(409).json({ error: `${req.body.name} already exist` });
+    }
+
     const newCategory = await prisma.category.create({
       data: {
         name: req.body.name,
@@ -20,3 +24,60 @@ export const createCategory = async (req, res) => {
   }
 };
 
+export const getCategories = async (req, res) => {
+  try {
+    const categories = await prisma.category.findMany();
+    return res.status(200).json(categories);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+export const updateCategory = async (req, res) => {
+  try {
+    if (
+      !(await prisma.category.findUnique({
+        where: { id: parseInt(req.params.id) },
+      }))
+    ) {
+      return res.status(404).json({ error: "Category not found" });
+    }
+
+    if (!req.body.name) {
+      return res.status(422).json({ error: "Name is required" });
+    }
+
+    if (await prisma.category.findUnique({ where: { name: req.body.name } })) {
+      return res.status(409).json({ error: `${req.body.name} already exist` });
+    }
+
+    const updatedCategory = await prisma.category.update({
+      data: {
+        name: req.body.name,
+      },
+      where: {
+        id: parseInt(req.params.id),
+      },
+    });
+
+    return res.status(200).json(updatedCategory);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+export const deleteCategory = async (req, res) => {
+  try {
+    if (
+      !(await prisma.category.findUnique({
+        where: { id: parseInt(req.params.id) },
+      }))
+    ) {
+      return res.status(404).json({ error: "Category not found" });
+    }
+    await prisma.category.delete({ where: { id: parseInt(req.params.id) } });
+    return res.status(204).send();
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
