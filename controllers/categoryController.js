@@ -75,6 +75,14 @@ export const deleteCategory = async (req, res) => {
     ) {
       return res.status(404).json({ error: "Category not found" });
     }
+
+    const productCount = await prisma.product.count({
+      where: { categoryId: parseInt(req.params.id) },
+    });
+
+    if(productCount){
+      return res.status(409).json({error:`Category id is being used in ${productCount} product(s)`})
+    }
     await prisma.category.delete({ where: { id: parseInt(req.params.id) } });
     return res.status(204).send();
   } catch (error) {
